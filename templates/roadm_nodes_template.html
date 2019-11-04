@@ -1,0 +1,58 @@
+{% extends "base_template.html" %}
+{% autoescape None %}
+<!--<link>-->
+{% block content %}
+<h3>ROADM Nodes</h3>
+<p>Current ROADM Nodes SRLGs</p>
+<div class="alert alert-danger alert-dismissible collapse" role="alert" id="failed">
+    <a href="#" class="close" data-hide="alert" aria-label="close" >&times;</a>
+  <strong>Failed!</strong> The request to the server failed.  Try again.
+</div>
+<div class="alert alert-warning alert-dismissible collapse" role="alert" id="partial">
+    <a href="#" class="close" data-hide="alert" aria-label="close" >&times;</a>
+  <strong>Partial</strong> The request to the server resulted in partial completion.  Please check server logs.
+</div>
+<div class="alert alert-success alert-dismissible collapse" role="alert" id="completed">
+    <a href="#" class="close" data-hide="alert" aria-label="close" >&times;</a>
+  <strong>Sucess</strong> The request to the server completed successfully.
+</div>
+<form id="l1nodes-form">
+    <div><input type="hidden" name="type" value="l1node"></div>
+    <div><input type="hidden" name="action" value="assign-srrg"></div>
+    <div class="form-row">
+        <div class="form-group col-md-3">
+            <select class="form-control" name="pool-name" id="region-select">
+                {% for pool in pools %}
+                {% block pool %}
+                <option>{{ escape(pool) }}</option>
+                {% end %}
+                {% end %}
+            </select>
+        </div>
+        <div class="form-group col-md-3">
+            <button type="submit" class="btn btn-success" style="width: 75%" id="l1nodes-btn" disabled>
+                Assign Node
+            </button>
+        </div>
+    </div>
+</form>
+<form id="l1nodes-unassign-form">
+    <div><input type="hidden" name="action" value="unassign-srrg"></div>
+    <div><input type="hidden" name="type" value="l1node"></div>
+    <div class="form-row">
+        <div class="form-group col-md-5">
+            <button type="submit" class="btn btn-success" style="width: 33%" id="l1nodes-unassign-btn" disabled>
+                Unassign
+            </button>
+        </div>
+    </div>
+</form>
+<div class="table" id="tablediv">
+    <table id="nodes_table"></table>
+</div>
+
+<script type="text/javascript">
+    client.buildL1nodesTable('{{ l1nodes_data }}');
+</script>
+
+{% end %}

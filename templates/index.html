@@ -1,0 +1,111 @@
+{% extends "base_template.html" %}
+{% block content %}
+<h1>SRLG Management Tool</h1>
+<p>Handles EPNM SRLG assignment via API.</p>
+<div class="alert alert-danger alert-dismissible collapse" role="alert" id="failed">
+    <a href="#" class="close" data-hide="alert" aria-label="close" >&times;</a>
+  <strong>Failed!</strong> The request to the server failed.  Try again.
+</div>
+<div class="alert alert-success alert-dismissible collapse" role="alert" id="completed">
+    <a href="#" class="close" data-hide="alert" aria-label="close" >&times;</a>
+  <strong>Sucess</strong> The request to the server completed successfully.
+</div>
+<div>
+    <form id="epnm-form">
+        <div><input type="hidden" name="action" value="update-epnm"></div>
+        <div class="form-row">
+            <div class="form-group col-md-2">
+                <label for="exampleInputEmail1">EPNM IP Address</label>
+                <input name="epnm-ip" type="text" class="form-control" id="exampleInputEmail1"
+                       aria-describedby="emailHelp"
+                       value="{{epnm_ip}}">
+            </div>
+            <div class="form-group col-md-2">
+                <label for="exampleInputUser">Username</label>
+                <input name="epnm-user" type="text" class="form-control" id="exampleInputUser" value="{{epnm_user}}">
+            </div>
+            <div class="form-group col-md-2">
+                <label for="exampleInputPassword1">Password</label>
+                <input name="epnm-pass" type="password" class="form-control" id="exampleInputPassword1"
+                       value="{{epnm_pass}}">
+            </div>
+            <div class="form-group col-md-2">
+                <label>Expected Region</label>
+                <select class="form-control" name="region" id="region-select">
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                    <option>7</option>
+                    <option>8</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-2">
+                <button type="submit" class="btn btn-primary" style="width: 75%" id="update-btn">Update</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<form id="collectform">
+    <div class="form-row">
+        <div><input type="hidden" name="action" value="collect"></div>
+        <div class="form-group col-md-2">
+            <div>
+            <button type="submit" class="btn btn-success" style="width: 75%" id="collect-btn">
+                Collect
+            </button>
+            </div>
+            <div class="form-check">
+                <input type="hidden" value="off" name="srlg-only" id="srlg_check_hidden">
+                <input type="checkbox" class="form-check-input" name="srlg-only" id="srlg_check" checked="checked">
+                <label class="form-check-label">SRLG Only</label>
+            </div>
+        </div>
+    </div>
+</form>
+
+<h3>Collection Progress</h3>
+<div class="card">
+    <div class="card-body" id="textfield" style="min-height: 200px;max-height: 200px;overflow-y: scroll;">
+        <p class="card-text" id="updatefield"></p>
+    </div>
+</div>
+<script type="text/javascript">
+    client.set_region_select({{region}});
+    client.connect({{port}});
+</script>
+{% end %}
+
+<!--<script type="text/javascript">-->
+<!--// Connect a websocket to the server. The port notation is post- -->
+<!--// processed server-side according to the config file-->
+<!--var ws = client.connect({{port}});-->
+<!--</script>-->
+<!--<button type="button" onclick="javascript:client.buildtable()" class="btn btn-success">Table</button>-->
+<!--<p>Port is {{port}}</p>-->
+
+<!--<div class="spinner-border text-primary" role="status" id="loading-indicator" style="display:none">-->
+<!--<span class="sr-only">Loading...</span>-->
+<!--</div>-->
+
+<!--<div class="loader" id="loading-indicator"></div>-->
+
+
+<!--<p><a href="static/topologydata" type="text/json">Topology Data Link</a></p>-->
+<!--<h3>history</h3>-->
+<!--<div class="answer" id="answerdiv"></div>-->
+
+<!--<div class="table" id="tablediv">-->
+<!--<table id="nodetable"></table>-->
+<!--</div>-->
+
+<!--<script type="text/javascript">-->
+<!--client.buildtable();-->
+<!--</script>-->
+
+
