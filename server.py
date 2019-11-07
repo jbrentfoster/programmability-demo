@@ -70,6 +70,11 @@ class ResultsHandler(tornado.web.RequestHandler):
         response = methods.get_response()
         self.render("templates/response_template.html", port=args.port, response=response)
 
+class ReferencesHandler(tornado.web.RequestHandler):
+
+    def get(self):
+        self.render("templates/references_template.html", port=args.port)
+
 
 class WebSocket(tornado.websocket.WebSocketHandler):
 
@@ -142,6 +147,7 @@ def main():
                     tornado.web.StaticFileHandler,
                     dict(path=settings['static_path'])),
                 url(r'/response', ResultsHandler, name="response"),
+                url(r'/references', ReferencesHandler, name="references"),
                 url(r'/ajax', AjaxHandler, name="ajax")
                 ]
 
