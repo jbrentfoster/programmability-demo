@@ -17,4 +17,12 @@ To start the server:
 
 Example,
 
-    (python3.7-venv) python server.py --port 8000
+    (python3.7-venv) python server.py --port 8000`
+    
+Open a Web browser and enter the URL, example
+
+`http://127.0.0.1:8000/`
+
+Test the REST call using the sample URL provided.
+
+**Note: the web client is not calling the REST URL directly.  Rather it is sending the URL to the server and the server executes the REST call and sends the results back to the client.**
