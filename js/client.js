@@ -6,8 +6,8 @@
  $(document).ready(function() {
     //Functions for form submission
     $("#collectform").on("submit", function() {
-        console.log("Collection button run_collection called from form submit!");
-        run_collection($(this));
+        console.log("Collection button collect-btn called from form submit!");
+        call_rest($(this));
         return false;
     });
 
@@ -22,7 +22,7 @@
  });
 
 
-function run_collection(form) {
+function call_rest(form) {
     var message = form.form2Dict();
     var btn = $("#collect-btn");
     var btn_spinner_html = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" id="spinner"></span>Test REST';
@@ -32,7 +32,7 @@ function run_collection(form) {
     jQuery().postJSON("/ajax", message, function(response) {
         console.log("Callback!!!");
         if (response.status == 'failed') {
-                $('#failed').show();
+            $('#failed').show();
         }
         else {
             $('#completed').show();
@@ -83,7 +83,6 @@ jQuery.fn.extend({
         s = s.replace(/[\u0000-\u0019]+/g,"");
         return s;
     },
-
 });
 
 // Web client javascript functions (including websocket client code)...
