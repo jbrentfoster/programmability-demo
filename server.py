@@ -21,32 +21,20 @@ from distutils.dir_util import mkpath
 import time
 
 # global variables...
-# epnmipaddr = args.epnm_ipaddr
-# epnmuser = args.epnm_user
-# epnmpassword = args.epnm_pass
-epnmipaddr = "10.135.7.223"
-baseURL = "https://" + epnmipaddr + "/restconf"
-epnmuser = "root"
-epnmpassword = "Epnm1234"
+initial_url = "https://jsonplaceholder.typicode.com/posts"
 open_websockets = []
-global_region = 1
 
 
 class IndexHandler(tornado.web.RequestHandler):
 
     async def get(self):
-        self.render("templates/index.html", port=args.port, epnm_ip=epnmipaddr, epnm_user=epnmuser,
-                    epnm_pass=epnmpassword, region=global_region)
+        self.render("templates/index.html", port=args.port, initial_url=initial_url)
 
 
 class AjaxHandler(tornado.web.RequestHandler):
 
     async def post(self):
-        global global_region
-        global epnmipaddr
-        global baseURL
-        global epnmuser
-        global epnmpassword
+        global initial_url
 
         request_body = self.request.body.decode("utf-8")
         # request = tornado.escape.recursive_unicode(self.request.arguments)
@@ -63,39 +51,9 @@ class AjaxHandler(tornado.web.RequestHandler):
             logging.info(response)
             self.write(json.dumps(response))
 
-        if action == 'collect':
-            methods.collection(self, request, global_region, baseURL, epnmuser, epnmpassword)
-        elif action == 'assign-srrg':
-            methods.assign_srrg(self, request, global_region, baseURL, epnmuser, epnmpassword)
-        elif action == 'unassign-srrg':
-            methods.unassign_srrg(self, request, global_region, baseURL, epnmuser, epnmpassword)
-        elif action == 'get-l1nodes':
-            l1nodes = methods.getl1nodes()
-            self.write(json.dumps(l1nodes))
-        elif action == 'get-l1links':
-            l1links = methods.getl1links()
-            self.write(json.dumps(l1links))
-        elif action == 'get-topolinks':
-            node_name = request['l1node']
-            psline = request['psline']
-            topolinks = methods.gettopolinks_psline(node_name, psline)
-            self.write(json.dumps(topolinks))
-        elif action == 'get-topolinks-line-card':
-            node_name = request['mplsnode']
-            topolinks = methods.gettopolinks_mpls_node(node_name)
-            self.write(json.dumps(topolinks))
-        elif action == 'update-epnm':
-            time.sleep(2)
-            epnmipaddr = request['epnm-ip']
-            baseURL = "https://" + epnmipaddr + "/restconf"
-            epnmuser = request['epnm-user']
-            epnmpassword = request['epnm-pass']
-            region = request['region']
-            region_int = int(region)
-            global_region = region_int
-            response = {'action': 'update-epnm', 'status': 'completed'}
-            logging.info(response)
-            self.write(json.dumps(response))
+        if action == 'send-request':
+            initial_url = request['url']
+            methods.send_request(self, request)
         else:
             logging.warning("Received request for unknown operation!")
             response = {'status': 'unknown', 'error': "unknown request"}
@@ -106,64 +64,11 @@ class AjaxHandler(tornado.web.RequestHandler):
         for ws in open_websockets:
             ws.send_message(message)
 
-
-class SRLGHandler(tornado.web.RequestHandler):
-
-    def get(self, srlg_num):
-        srlg = methods.getsrlg(srlg_num)
-        self.render("templates/srlg_template.html", port=args.port, srlg_num=srlg_num, srlg_data=srlg)
-
-
-class ROADMNodesHandler(tornado.web.RequestHandler):
+class ResultsHandler(tornado.web.RequestHandler):
 
     def get(self):
-        l1nodes = methods.getl1nodes()
-        pools = methods.get_srrg_pools(1)
-        # if len(pools) == 0:
-        #     pools = ['No Node SRLG Pools Defined']
-        self.render("templates/roadm_nodes_template.html", port=args.port, l1nodes_data=l1nodes, pools=pools)
-
-
-class ROADMLinksHandler(tornado.web.RequestHandler):
-
-    def get(self):
-        # full_url = self.request.full_url()
-        # uri = self.request.uri
-        # base_full_url = self.request.protocol + "://" + self.request.host
-        l1links = methods.getl1links()
-        conduit_pools = methods.get_srrg_pools(0)
-        degree_pools = methods.get_srrg_pools(2)
-        self.render("templates/roadm_links_template.html", port=args.port, degree_pools=degree_pools,
-                    conduit_pools=conduit_pools, l1links_data=l1links)
-
-
-class MPLSNodesHandler(tornado.web.RequestHandler):
-
-    def get(self):
-        mpls_nodes = methods.getmplsnodes()
-        self.render("templates/mpls_nodes_template.html", port=args.port, mpls_nodes_data=mpls_nodes)
-
-
-class AddDropTopoLinksHandler(tornado.web.RequestHandler):
-
-    def get(self):
-        l1node = self.get_argument('l1node')
-        psline = self.get_argument('psline')
-        topo_links = methods.gettopolinks_psline(l1node, psline)
-        add_drop_pools = methods.get_srrg_pools(3)
-        self.render("templates/topo_links_template_add_drop.html", port=args.port, topo_links_data=topo_links,
-                    add_drop_pools=add_drop_pools, l1node=l1node)
-
-
-class LineCardTopoLinksHandler(tornado.web.RequestHandler):
-
-    def get(self):
-        thequery = self.request.query
-        mplsnode = thequery.split('=')[1]
-        topo_links = methods.gettopolinks_mpls_node(mplsnode)
-        card_pools = methods.get_srrg_pools(6)
-        self.render("templates/topo_links_template_line_card.html", port=args.port, topo_links_data=topo_links,
-                    card_pools=card_pools)
+        response = methods.get_response()
+        self.render("templates/response_template.html", port=args.port, response=response)
 
 
 class WebSocket(tornado.websocket.WebSocketHandler):
@@ -236,22 +141,7 @@ def main():
                 url(r'/static/(.*)',
                     tornado.web.StaticFileHandler,
                     dict(path=settings['static_path'])),
-                # {'path': os.path.normpath(os.path.dirname(__file__))}),
-                url(r'/srlg/([0-9]+)', SRLGHandler),
-                url(r'/srlg/static/(.*)',
-                    tornado.web.StaticFileHandler,
-                    dict(path=settings['static_path'])),
-                url(r'/roadmlinks', ROADMLinksHandler, name="roadm_links"),
-                url(r'/roadmnodes', ROADMNodesHandler, name="roadm_nodes"),
-                url(r'/mplsnodes', MPLSNodesHandler, name="mpls_nodes"),
-                url(r'/topolinks-ad/?', AddDropTopoLinksHandler, name="ad-topo_links"),
-                url(r'/topolinks-ad/static/(.*)',
-                    tornado.web.StaticFileHandler,
-                    dict(path=settings['static_path'])),
-                url(r'/topolinks-lc/?', LineCardTopoLinksHandler, name="lc-topo_links"),
-                url(r'/topolinks-lc/static/(.*)',
-                    tornado.web.StaticFileHandler,
-                    dict(path=settings['static_path'])),
+                url(r'/response', ResultsHandler, name="response"),
                 url(r'/ajax', AjaxHandler, name="ajax")
                 ]
 
