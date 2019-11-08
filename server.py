@@ -64,16 +64,16 @@ class AjaxHandler(tornado.web.RequestHandler):
         for ws in open_websockets:
             ws.send_message(message)
 
-class ResultsHandler(tornado.web.RequestHandler):
+class ResponseHandler(tornado.web.RequestHandler):
 
     def get(self):
         response = methods.get_response()
-        self.render("templates/response_template.html", port=args.port, response=response)
+        self.render("templates/response_template.html", response=response)
 
 class ReferencesHandler(tornado.web.RequestHandler):
 
     def get(self):
-        self.render("templates/references_template.html", port=args.port)
+        self.render("templates/references_template.html")
 
 
 class WebSocket(tornado.websocket.WebSocketHandler):
@@ -146,7 +146,7 @@ def main():
                 url(r'/static/(.*)',
                     tornado.web.StaticFileHandler,
                     dict(path=settings['static_path'])),
-                url(r'/response', ResultsHandler, name="response"),
+                url(r'/response', ResponseHandler, name="response"),
                 url(r'/references', ReferencesHandler, name="references"),
                 url(r'/ajax', AjaxHandler, name="ajax")
                 ]

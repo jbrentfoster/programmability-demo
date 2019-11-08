@@ -131,8 +131,10 @@ var client = {
         var table = $('#response_table'), row = null, data = null;
         var thead_html = '<thead><th style="text-align: center; vertical-align: middle;"><input type="checkbox" class="form-check-input" id="select-all"></th>';
         var first_item = results_data_json[0];
+        var i = 1;
         $.each(first_item, function (k1, v1) {
-            thead_html += '<th>' + k1 + '</th>';
+            thead_html += '<th onclick="javascript:client.sortTable(' + i.toString() + ',\'response_table\')" style="cursor: pointer">' + k1 + '</th>';
+            i += 1;
         });
         thead_html += '</thead>';
         var thead = $(thead_html);
@@ -155,7 +157,6 @@ var client = {
 
     sortTable: function (n, table_id) {
         var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-//        table = document.getElementById("topo_links_table");
         table = document.getElementById(table_id);
         switching = true;
         // Set the sorting direction to ascending:
