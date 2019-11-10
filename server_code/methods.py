@@ -1,18 +1,16 @@
 import json
 import logging
-import traceback
-from server import clean_files as clean_files
-import uuid
-import time
-import utils
+# from server import clean_files as clean_files
+from server_code import utils
+from server_code import ydk_code
 
 
 def send_request(ajax_handler, request):
-    clean_files()
+    # clean_files()
     response_json_list = []
     try:
         ajax_handler.send_message_open_ws("Sending REST call..")
-        response = utils.rest_get_json(request['url'], "","foo", "bar")
+        response = utils.rest_get_json(request['url'], "", "foo", "bar")
         response_json = json.loads(response)
         if type(response_json) is dict:
             response_json_list.append(response_json)
@@ -31,6 +29,18 @@ def send_request(ajax_handler, request):
         logging.info(result)
         ajax_handler.write(json.dumps(result))
 
+def get_isis_neigh(ajax_handler):
+    try:
+        output = ydk_code.process_isis("192.168.0.7", 830, "cisco", "cisco", "ssh")
+        logging.info(output)
+        ajax_handler.send_message_open_ws(output)
+        result = {'action': 'collect', 'status': 'completed'}
+        logging.info(result)
+        ajax_handler.write(json.dumps(result))
+    except Exception as err:
+        result = {'action': 'collect', 'status': 'failed'}
+        logging.info(result)
+        ajax_handler.write(json.dumps(result))
 
 def get_response():
     with open("jsongets/response.json", 'r', ) as f:

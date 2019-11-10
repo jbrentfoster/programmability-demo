@@ -6,19 +6,16 @@ from datetime import datetime
 import json
 import os
 import traceback
-import webbrowser
 import tornado.web
 import tornado.websocket
 import tornado.escape
 import tornado.ioloop
 import tornado.locks
 from tornado.web import url
-import methods
+from server_code import methods
 import logging
-from distutils.dir_util import copy_tree
 from distutils.dir_util import remove_tree
 from distutils.dir_util import mkpath
-import time
 
 # global variables...
 initial_url = "https://jsonplaceholder.typicode.com/posts"
@@ -53,7 +50,8 @@ class AjaxHandler(tornado.web.RequestHandler):
 
         if action == 'send-request':
             initial_url = request['url']
-            methods.send_request(self, request)
+            # methods.send_request(self, request)
+            methods.get_isis_neigh(self)
         else:
             logging.warning("Received request for unknown operation!")
             response = {'status': 'unknown', 'error': "unknown request"}

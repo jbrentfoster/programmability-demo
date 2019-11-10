@@ -2,7 +2,7 @@ import requests
 import urllib3
 from urllib3.exceptions import InsecureRequestWarning
 import json
-import errors
+from server_code import errors
 import xml.dom.minidom
 import logging
 
