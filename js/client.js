@@ -11,6 +11,12 @@
         return false;
     });
 
+    $("#config-form").on("submit", function() {
+        console.log("Collection button config-btn called from form submit!");
+        call_config($(this));
+        return false;
+    });
+
     //Function for hiding bootstrap alerts
     $(function(){
         $("[data-hide]").on("click", function(){
@@ -24,8 +30,9 @@
 
 function call_rest(form) {
     var message = form.form2Dict();
+    var btn_txt = 'Test REST'
     var btn = $("#collect-btn");
-    var btn_spinner_html = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" id="spinner"></span>Test REST';
+    var btn_spinner_html = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" id="spinner"></span>' + btn_txt;
     btn.html(btn_spinner_html);
     btn.attr("disabled","disabled");
     $("#updatefield").append("Sending URL to server to execute request...<br>");
@@ -42,7 +49,33 @@ function call_rest(form) {
         textfield.scrollTop = textfield.scrollHeight;
         console.log(response);
         btn.empty();
-        btn.text("Test REST");
+        btn.text(btn_txt);
+        btn.removeAttr("disabled");
+    });
+}
+
+function call_config(form) {
+    var message = form.form2Dict();
+    var btn_txt = 'OK'
+    var btn = $("#config-btn");
+    var btn_spinner_html = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" id="spinner"></span>' + btn_txt;
+    btn.html(btn_spinner_html);
+    btn.attr("disabled","disabled");
+    $("#updatefield").append("Sending request to server to execute configuration...<br>");
+    jQuery().postJSON("/ajax", message, function(response) {
+        console.log("Callback!!!");
+        if (response.status == 'failed') {
+            $('#failed').show();
+        }
+        else {
+            $('#completed').show();
+        }
+        $("#updatefield").append(response.status + "<br>");
+        var textfield = document.getElementById('textfield');
+        textfield.scrollTop = textfield.scrollHeight;
+        console.log(response);
+        btn.empty();
+        btn.text(btn_txt);
         btn.removeAttr("disabled");
     });
 }
@@ -92,7 +125,7 @@ var client = {
     // Connects to Python through the websocket
     connect: function (port) {
         var self = this;
-        console.log("Opening websocket to ws://" + window.location.hostname + ":" + port + "/websocket")
+        console.log("Opening websocket to ws://" + window.location.hostname + ":" + port + "/websocket");
         this.socket = new WebSocket("ws://" + window.location.hostname + ":" + port + "/websocket");
 
         this.socket.onopen = function () {

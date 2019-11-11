@@ -19,19 +19,25 @@ from distutils.dir_util import mkpath
 
 # global variables...
 initial_url = "https://jsonplaceholder.typicode.com/posts"
+node_ip = "192.168.0.7"
+node_user = "cisco"
+node_pass = "cisco"
 open_websockets = []
-
 
 class IndexHandler(tornado.web.RequestHandler):
 
     async def get(self):
-        self.render("templates/index.html", port=args.port, initial_url=initial_url)
+        await self.render("templates/index.html", port=args.port, node_ip=node_ip,
+                          node_user=node_user, node_pass=node_pass)
 
 
 class AjaxHandler(tornado.web.RequestHandler):
 
     async def post(self):
         global initial_url
+        global node_ip
+        global node_user
+        global node_pass
 
         request_body = self.request.body.decode("utf-8")
         # request = tornado.escape.recursive_unicode(self.request.arguments)
@@ -50,8 +56,13 @@ class AjaxHandler(tornado.web.RequestHandler):
 
         if action == 'send-request':
             initial_url = request['url']
-            # methods.send_request(self, request)
-            methods.get_isis_neigh(self)
+            methods.send_request(self, request)
+            # methods.execute_ydk(self, request)
+        elif action == 'execute-config':
+            node_ip = request['node-ip']
+            node_user = request['node-user']
+            node_pass = request['node-pass']
+            methods.execute_ydk(self, request)
         else:
             logging.warning("Received request for unknown operation!")
             response = {'status': 'unknown', 'error': "unknown request"}

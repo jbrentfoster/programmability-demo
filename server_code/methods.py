@@ -29,11 +29,13 @@ def send_request(ajax_handler, request):
         logging.info(result)
         ajax_handler.write(json.dumps(result))
 
-def get_isis_neigh(ajax_handler):
+def execute_ydk(ajax_handler, request):
     try:
-        output = ydk_code.process_isis("192.168.0.7", 830, "cisco", "cisco", "ssh")
-        logging.info(output)
-        ajax_handler.send_message_open_ws(output)
+        # output = ydk_code.process_isis("192.168.0.7", 830, "cisco", "cisco", "ssh")
+        # logging.info(output)
+        # ajax_handler.send_message_open_ws(output)
+        ydk_code.create_uni(request['node-ip'], 830, request['node-user'], request['node-pass'], "ssh",
+                            int(request['load-interval']))
         result = {'action': 'collect', 'status': 'completed'}
         logging.info(result)
         ajax_handler.write(json.dumps(result))

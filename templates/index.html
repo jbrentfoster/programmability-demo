@@ -11,30 +11,64 @@
     <strong>Sucess</strong> The request to the server completed successfully.
 </div>
 <div>
-    <form id="collectform">
-        <div><input type="hidden" name="action" value="send-request"></div>
-        <!--        <div><input type="hidden" name="action" value="update-epnm"></div>-->
+    <form id="config-form">
+        <div><input type="hidden" name="action" value="execute-config"></div>
         <div class="form-row">
-            <div class="form-group col-md-4">
-                <label for="exampleInputEmail1">URL target for REST call</label>
-                <input name="url" type="text" class="form-control" id="url-input-field"
-                       aria-describedby="emailHelp"
-                       value="{{initial_url}}">
+            <div class="form-group col-md-2">
+                <label>Node IP Address</label>
+                <input name="node-ip" type="text" class="form-control" id="exampleInputIP"
+                       value="{{node_ip}}">
+            </div>
+            <div class="form-group col-md-2">
+                <label>Username</label>
+                <input name="node-user" type="text" class="form-control" id="exampleInputUser"
+                       value="{{node_user}}">
+            </div>
+            <div class="form-group col-md-2">
+                <label for="exampleInputPassword1">Password</label>
+                <input name="node-pass" type="password" class="form-control" id="exampleInputPassword1"
+                       value="{{node_pass}}">
             </div>
         </div>
         <div class="form-row">
             <div class="form-group col-md-2">
-                <div>
-                    <button type="submit" class="btn btn-success" style="width: 75%" id="collect-btn">
-                        Test REST
-                    </button>
-                </div>
+                <label>Load Interval</label>
+                <input name="load-interval" type="text" class="form-control" id="loadInterval"
+                       value="30">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-2">
+                <button type="submit" class="btn btn-primary" style="width: 75%" id="config-btn">OK</button>
             </div>
         </div>
     </form>
 </div>
+{#<div>#}
+{#    <form id="collectform">#}
+{#        <div><input type="hidden" name="action" value="send-request"></div>#}
+{#        <!--        <div><input type="hidden" name="action" value="update-epnm"></div>-->#}
+{#        <div class="form-row">#}
+{#            <div class="form-group col-md-4">#}
+{#                <label for="exampleInputEmail1">URL target for REST call</label>#}
+{#                <input name="url" type="text" class="form-control" id="url-input-field"#}
+{#                       aria-describedby="emailHelp"#}
+{#                       value="{{initial_url}}">#}
+{#            </div>#}
+{#        </div>#}
+{#        <div class="form-row">#}
+{#            <div class="form-group col-md-2">#}
+{#                <div>#}
+{#                    <button type="submit" class="btn btn-success" style="width: 75%" id="collect-btn">#}
+{#                        Test REST#}
+{#                    </button>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </form>#}
+{#</div>#}
 
-<h3>Collection Progress</h3>
+<h4>Message Console</h4>
 <div class="card">
     <div class="card-body" id="textfield" style="min-height: 200px;max-height: 200px;overflow-y: scroll;">
         <pre class="card-text" id="updatefield"></pre>

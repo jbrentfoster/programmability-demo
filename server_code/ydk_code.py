@@ -1,16 +1,49 @@
 from ydk.services import CRUDService
 from ydk.providers import NetconfServiceProvider
+from ydk.services import CodecService
+from ydk.providers import CodecServiceProvider
 from ydk.models.cisco_ios_xr import Cisco_IOS_XR_clns_isis_oper \
     as xr_clns_isis_oper
 from ydk.models.openconfig import openconfig_bgp \
     as oc_bgp
 from ydk.models.cisco_ios_xr import Cisco_IOS_XR_cdp_oper \
     as xr_cdp_oper
+from ydk.models.cisco_ios_xr import Cisco_IOS_XR_ifmgr_cfg \
+    as xr_ifmgr_cfg
 import re
 import logging
 
+def create_uni(address, port, username, password, protocol, load_interval):
+    # create NETCONF provider
+    netconf_provider = NetconfServiceProvider(address=address, port=port, username=username, password=password, protocol=protocol)
+    # create CRUD service
+    crud = CRUDService()
 
-def process_isis(address, port, username, password, protocol):
+    # create codec provider
+    codec_provider = CodecServiceProvider(type="xml")
+    # create codec service
+    codec = CodecService()
+
+    # global_interface_configuration = xr_ifmgr_cfg.GlobalInterfaceConfiguration()  # create object
+    # config_global_interface_configuration(global_interface_configuration)  # add object configuration
+
+    # create ifmgr obj
+    if_cfg = xr_ifmgr_cfg.InterfaceConfigurations.InterfaceConfiguration()
+    if_cfg.active = "act"
+    if_cfg.interface_name = "GigabitEthernet0/0/0/1"
+    if_cfg.statistics.load_interval = load_interval
+
+    # create the interface configurations add the if_cfg to it
+    if_cfgs = xr_ifmgr_cfg.InterfaceConfigurations()
+    if_cfgs.interface_configuration.append(if_cfg)
+
+    # encode and print object
+    the_xml = codec.encode(codec_provider, if_cfgs)
+    # print(the_xml)
+    crud.create(netconf_provider, if_cfgs)
+    return the_xml
+
+def get_cdp(address, port, username, password, protocol):
     # create NETCONF provider
     provider = NetconfServiceProvider(address=address, port=port, username=username, password=password, protocol=protocol)
 
