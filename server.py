@@ -3,6 +3,7 @@ Creates an HTTP server with basic websocket communication.
 """
 import argparse
 from datetime import datetime
+from time import sleep
 import json
 import os
 import traceback
@@ -11,8 +12,11 @@ import tornado.websocket
 import tornado.escape
 import tornado.ioloop
 import tornado.locks
+from kafka import KafkaConsumer
+import threading
 from tornado.web import url
 from server_code import methods
+from server_code import telemetry_code
 import logging
 from distutils.dir_util import remove_tree
 from distutils.dir_util import mkpath
@@ -23,12 +27,17 @@ node_ip = "192.168.0.7"
 node_user = "cisco"
 node_pass = "cisco"
 open_websockets = []
+telemetry_thread = None
+
 
 class IndexHandler(tornado.web.RequestHandler):
 
     async def get(self):
+        global telemetry_thread
         await self.render("templates/index.html", port=args.port, node_ip=node_ip,
                           node_user=node_user, node_pass=node_pass)
+        if telemetry_thread is not None:
+            telemetry_thread.pause()
 
 
 class AjaxHandler(tornado.web.RequestHandler):
@@ -68,6 +77,20 @@ class AjaxHandler(tornado.web.RequestHandler):
             response = {'status': 'unknown', 'error': "unknown request"}
             logging.info(response)
             self.write(json.dumps(response))
+
+    def send_message_open_ws(self, message):
+        for ws in open_websockets:
+            ws.send_message(message)
+
+class TelemetryHandler(tornado.web.RequestHandler):
+
+    def get(self):
+        global telemetry_thread
+        self.render("templates/telemetry_template.html", port=args.port)
+        if telemetry_thread is None:
+            telemetry_thread = telemetry_code.init_telemetry(self)
+        else:
+            telemetry_thread.resume()
 
     def send_message_open_ws(self, message):
         for ws in open_websockets:
@@ -116,6 +139,7 @@ class WebSocket(tornado.websocket.WebSocketHandler):
         self.write_message(json_rpc_response)
 
     def on_close(self):
+        logging.info("Websocket closing...")
         open_websockets.remove(self)
         logging.info("WebSocket closed!")
 
@@ -155,6 +179,7 @@ def main():
                 url(r'/static/(.*)',
                     tornado.web.StaticFileHandler,
                     dict(path=settings['static_path'])),
+                url(r'/telemetry', TelemetryHandler, name="telemetry"),
                 url(r'/response', ResponseHandler, name="response"),
                 url(r'/references', ReferencesHandler, name="references"),
                 url(r'/ajax', AjaxHandler, name="ajax")
@@ -165,8 +190,13 @@ def main():
 
     # webbrowser.open("http://localhost:%d/" % args.port, new=2)
 
+    loop = tornado.ioloop.IOLoop.instance()
+    try:
+        loop.start()
+    except KeyboardInterrupt:
+        loop.stop()
     # tornado.ioloop.IOLoop.instance().start()
-    tornado.ioloop.IOLoop.current().start()
+    # tornado.ioloop.IOLoop.current().start()
 
 
 def clean_files():

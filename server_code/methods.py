@@ -3,6 +3,7 @@ import logging
 # from server import clean_files as clean_files
 from server_code import utils
 from server_code import ydk_code
+from server_code import telemetry_code
 
 
 def send_request(ajax_handler, request):
@@ -35,7 +36,7 @@ def execute_ydk(ajax_handler, request):
         # logging.info(output)
         # ajax_handler.send_message_open_ws(output)
         ydk_code.create_uni(request['node-ip'], 830, request['node-user'], request['node-pass'], "ssh",
-                            int(request['load-interval']))
+                            request['interface-name'], int(request['load-interval']))
         result = {'action': 'collect', 'status': 'completed'}
         logging.info(result)
         ajax_handler.write(json.dumps(result))

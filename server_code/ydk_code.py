@@ -13,7 +13,7 @@ from ydk.models.cisco_ios_xr import Cisco_IOS_XR_ifmgr_cfg \
 import re
 import logging
 
-def create_uni(address, port, username, password, protocol, load_interval):
+def create_uni(address, port, username, password, protocol, interface_name, load_interval):
     # create NETCONF provider
     netconf_provider = NetconfServiceProvider(address=address, port=port, username=username, password=password, protocol=protocol)
     # create CRUD service
@@ -30,7 +30,7 @@ def create_uni(address, port, username, password, protocol, load_interval):
     # create ifmgr obj
     if_cfg = xr_ifmgr_cfg.InterfaceConfigurations.InterfaceConfiguration()
     if_cfg.active = "act"
-    if_cfg.interface_name = "GigabitEthernet0/0/0/1"
+    if_cfg.interface_name = interface_name
     if_cfg.statistics.load_interval = load_interval
 
     # create the interface configurations add the if_cfg to it
@@ -40,7 +40,9 @@ def create_uni(address, port, username, password, protocol, load_interval):
     # encode and print object
     the_xml = codec.encode(codec_provider, if_cfgs)
     # print(the_xml)
+    #TODO figure out how to either kill the CRUD or reuse same CRUD
     crud.create(netconf_provider, if_cfgs)
+
     return the_xml
 
 def get_cdp(address, port, username, password, protocol):
