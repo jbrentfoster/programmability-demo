@@ -12,33 +12,49 @@ from argparse import ArgumentParser
 
 KAFKA_TOPIC = 'pipeline'
 KAFKA_BOOTSTRAP_SERVER = 'localhost:9092'
-SESSION_STATE_ESTABLISHED = "ESTABLISHED"
 TIMEOUT = 60
 
 
-def validate_bgp_peer(kafka_consumer, node, peer_address,
-                      session_state=SESSION_STATE_ESTABLISHED,
-                      timeout=TIMEOUT):
-    """Validate BGP session state."""
-    telemetry_encoding_path = "openconfig-network-instance:network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor"
-    start_time = time.time()
-    for kafka_msg in kafka_consumer:
-        msg = json.loads(kafka_msg.value.decode('utf-8'))
-        if (msg["Telemetry"]["node_id_str"] == node and
-                msg["Telemetry"]["encoding_path"] == telemetry_encoding_path
-                and "Rows" in msg):
-            for row in msg["Rows"]:
-                if ("neighbor-address" in row["Keys"] and
-                        row["Keys"]["neighbor-address"] == peer_address and
-                        "state" in row["Content"] and
-                        "session-state" in row["Content"]["state"] and
-                        row["Content"]["state"]["session-state"] == session_state):
-                    return True
+# def validate_bgp_peer(kafka_consumer, node, peer_address,
+#                       session_state=SESSION_STATE_ESTABLISHED,
+#                       timeout=TIMEOUT):
+#     """Validate BGP session state."""
+#     telemetry_encoding_path = "openconfig-network-instance:network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor"
+#     start_time = time.time()
+#     for kafka_msg in kafka_consumer:
+#         msg = json.loads(kafka_msg.value.decode('utf-8'))
+#         if (msg["Telemetry"]["node_id_str"] == node and
+#                 msg["Telemetry"]["encoding_path"] == telemetry_encoding_path
+#                 and "Rows" in msg):
+#             for row in msg["Rows"]:
+#                 if ("neighbor-address" in row["Keys"] and
+#                         row["Keys"]["neighbor-address"] == peer_address and
+#                         "state" in row["Content"] and
+#                         "session-state" in row["Content"]["state"] and
+#                         row["Content"]["state"]["session-state"] == session_state):
+#                     return True
+#
+#         if time.time() - start_time > timeout:
+#             break
+#
+#     return False
 
-        if time.time() - start_time > timeout:
-            break
-
-    return False
+def process_telemetry_msg(msg, handler):
+    telemetry_encoding_path = "Cisco-IOS-XR-pfi-im-cmd-oper:interfaces/interface-xr/interface"
+    node = "iosxrv-7"
+    intf = "GigabitEthernet0/0/0/0"
+    # msg = json.loads(kafka_msg.value.decode('utf-8'))
+    if (msg["Telemetry"]["node_id_str"] == node and
+            msg["Telemetry"]["encoding_path"] == telemetry_encoding_path
+            and "Rows" in msg):
+        for row in msg["Rows"]:
+            try:
+                if_name = row['Keys']['interface-name']
+                output_rate = row['Content']['data-rates']['output-data-rate']
+                if if_name == intf:
+                    handler.send_message_open_ws(if_name + " output rate: " + str(output_rate) + " kbps")
+            except Exception as err:
+                pass
 
 
 class Consumer(threading.Thread):
@@ -59,7 +75,8 @@ class Consumer(threading.Thread):
             message_dict = json.loads(message.value.decode("utf-8"))
             logging.info("Got a message!")
             logging.info(json.dumps(message_dict, indent=2, sort_keys=True))
-            self.handler.send_message_open_ws(json.dumps(message_dict, indent=2, sort_keys=True))
+            process_telemetry_msg(message_dict, self.handler)
+            # self.handler.send_message_open_ws(json.dumps(message_dict, indent=2, sort_keys=True))
 
     def subscribe(self, topic):
         self._consumer.subscribe('pipeline')
@@ -69,13 +86,13 @@ class Consumer(threading.Thread):
     def pause(self):
         logging.info("Pausing kafka consumer subscription to pipeline...")
         partitions = list(self._consumer.assignment())
-        # partition = partitions[0]
-        partition = TopicPartition(topic='pipeline', partition=0)
+        partition = partitions[0]
+        # partition = TopicPartition(topic='pipeline', partition=0)
         self._consumer.pause(partition)
     def resume(self):
         logging.info("Resuming kafka consumer subscription to pipeline...")
         partitions = list(self._consumer.assignment())
-        # partition = partitions[0]
+        partition_tmp = partitions[0]
         partition = TopicPartition(topic='pipeline', partition=0)
         self._consumer.resume(partition)
     # def stop(self):
@@ -86,7 +103,8 @@ class Consumer(threading.Thread):
 
 def init_telemetry(handler):
     asyncio.set_event_loop_policy(AnyThreadEventLoopPolicy())
-    kafka_consumer = Consumer(KafkaConsumer('pipeline'), handler)
+    kafka_consumer = KafkaConsumer(KAFKA_TOPIC, bootstrap_servers=KAFKA_BOOTSTRAP_SERVER)
+    my_consumer = Consumer(kafka_consumer, handler)
     # Start the kafka consumer thread.
-    kafka_consumer.start()
-    return kafka_consumer
+    my_consumer.start()
+    return my_consumer

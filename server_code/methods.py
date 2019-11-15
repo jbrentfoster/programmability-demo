@@ -3,7 +3,6 @@ import logging
 # from server import clean_files as clean_files
 from server_code import utils
 from server_code import ydk_code
-from server_code import telemetry_code
 
 
 def send_request(ajax_handler, request):
