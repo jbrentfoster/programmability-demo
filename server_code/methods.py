@@ -4,7 +4,6 @@ import logging
 from server_code import utils
 from server_code import ydk_code
 
-
 def send_request(ajax_handler, request):
     # clean_files()
     response_json_list = []
@@ -31,17 +30,22 @@ def send_request(ajax_handler, request):
 
 def execute_ydk(ajax_handler, request):
     try:
-        # output = ydk_code.process_isis("192.168.0.7", 830, "cisco", "cisco", "ssh")
-        # logging.info(output)
-        # ajax_handler.send_message_open_ws(output)
-        ydk_code.create_uni(request['node-ip'], 830, request['node-user'], request['node-pass'], "ssh",
-                            request['interface-name'], int(request['load-interval']))
-        result = {'action': 'collect', 'status': 'completed'}
+        provider = None
+        for tmp_provider in ydk_code.nc_providers:
+            if tmp_provider['node-ip'] == request['node-ip']:
+                provider = tmp_provider['provider']
+        if provider is None:
+            provider_dict = ydk_code.create_netconf_provider(request)
+            provider = provider_dict['provider']
+            ydk_code.nc_providers.append(provider_dict)
+        ydk_code.create_service(request, provider)
+        result = {'action': request['action'], 'status': 'completed'}
         logging.info(result)
         ajax_handler.write(json.dumps(result))
     except Exception as err:
-        result = {'action': 'collect', 'status': 'failed'}
+        result = {'action': request['action'], 'status': 'failed'}
         logging.info(result)
+        logging.info(err)
         ajax_handler.write(json.dumps(result))
 
 def get_response():

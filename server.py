@@ -23,19 +23,18 @@ from distutils.dir_util import mkpath
 
 # global variables...
 initial_url = "https://jsonplaceholder.typicode.com/posts"
-node_ip = "192.168.0.7"
-node_user = "cisco"
-node_pass = "cisco"
+# node_ip = "192.168.0.1"
+# node_user = "cisco"
+# node_pass = "cisco"
 open_websockets = []
 telemetry_thread = None
-
+telemetry_url = "http://192.168.5.102:3000/d/E5LFSC1Wz/telegraf?from=1574451327540&to=1574472927540&orgId=1&theme=light"
 
 class IndexHandler(tornado.web.RequestHandler):
 
     async def get(self):
         global telemetry_thread
-        await self.render("templates/index.html", port=args.port, node_ip=node_ip,
-                          node_user=node_user, node_pass=node_pass)
+        await self.render("templates/index.html", port=args.port)
         if telemetry_thread is not None:
             telemetry_thread.pause()
 
@@ -86,7 +85,8 @@ class TelemetryHandler(tornado.web.RequestHandler):
 
     def get(self):
         global telemetry_thread
-        self.render("templates/telemetry_template.html", port=args.port)
+        global telemetry_url
+        self.render("templates/telemetry_template.html", port=args.port, telemetry_url=telemetry_url)
         if telemetry_thread is None:
             telemetry_thread = telemetry_code.init_telemetry(self)
         else:

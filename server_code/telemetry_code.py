@@ -10,7 +10,7 @@ import threading
 import collections
 from argparse import ArgumentParser
 
-KAFKA_TOPIC = 'pipeline'
+KAFKA_TOPIC = 'telegraf'
 KAFKA_BOOTSTRAP_SERVER = 'localhost:9092'
 TIMEOUT = 60
 
@@ -41,20 +41,21 @@ TIMEOUT = 60
 
 def process_telemetry_msg(msg, handler):
     telemetry_encoding_path = "Cisco-IOS-XR-pfi-im-cmd-oper:interfaces/interface-xr/interface"
-    node = "iosxrv-7"
+    node = "iosxrv-1"
     intf = "GigabitEthernet0/0/0/0"
     # msg = json.loads(kafka_msg.value.decode('utf-8'))
-    if (msg["Telemetry"]["node_id_str"] == node and
-            msg["Telemetry"]["encoding_path"] == telemetry_encoding_path
-            and "Rows" in msg):
-        for row in msg["Rows"]:
-            try:
-                if_name = row['Keys']['interface-name']
-                output_rate = row['Content']['data-rates']['output-data-rate']
-                if if_name == intf:
-                    handler.send_message_open_ws(if_name + " output rate: " + str(output_rate) + " kbps")
-            except Exception as err:
-                pass
+    logging.debug("Kafka message is from " + msg['tags']['Producer'] + "...")
+    if (msg["tags"]["Producer"] == node and
+            msg["name"] == telemetry_encoding_path
+            and "fields" in msg):
+        try:
+            if_name = msg['tags']['interface-name']
+            output_rate = msg['fields']['data-rates/output-data-rate']
+            if if_name == intf:
+                msg_text = msg["tags"]["Producer"] + " " + if_name + " output rate: " + str(output_rate) + " kbps"
+                handler.send_message_open_ws(msg_text)
+        except Exception as err:
+            pass
 
 
 class Consumer(threading.Thread):
@@ -72,34 +73,40 @@ class Consumer(threading.Thread):
     def run(self):
         for message in self._consumer:
             # message = str(message)
-            message_dict = json.loads(message.value.decode("utf-8"))
-            logging.info("Got a message!")
-            logging.info(json.dumps(message_dict, indent=2, sort_keys=True))
+            message_decode = message.value.decode("utf-8")
+            message_dict = json.loads(message.value.decode("utf-8", errors='ignore'))
+            logging.debug("Message received from kafka...")
+            # logging.info(json.dumps(message_dict, indent=2, sort_keys=True))
             process_telemetry_msg(message_dict, self.handler)
             # self.handler.send_message_open_ws(json.dumps(message_dict, indent=2, sort_keys=True))
 
     def subscribe(self, topic):
-        self._consumer.subscribe('pipeline')
+        self._consumer.subscribe(KAFKA_TOPIC)
 
     def close(self):
         self._consumer.close()
+
     def pause(self):
-        logging.info("Pausing kafka consumer subscription to pipeline...")
+        logging.info("Pausing kafka consumer subscription...")
         partitions = list(self._consumer.assignment())
         partition = partitions[0]
-        # partition = TopicPartition(topic='pipeline', partition=0)
+        # partition = TopicPartition(topic=KAFKA_TOPIC, partition=0)
         self._consumer.pause(partition)
+
     def resume(self):
-        logging.info("Resuming kafka consumer subscription to pipeline...")
+        logging.info("Resuming kafka consumer subscription...")
         partitions = list(self._consumer.assignment())
-        partition_tmp = partitions[0]
-        partition = TopicPartition(topic='pipeline', partition=0)
+        partition = partitions[0]
+        # partition = TopicPartition(topic=KAFKA_TOPIC, partition=0)
         self._consumer.resume(partition)
-    # def stop(self):
-    #     logging.info("Halting telemetry thread...")
-    #     self._stop_event.set()
-    # def stopped(self):
-    #     return self._stop_event.is_set()
+
+    def stop(self):
+        logging.info("Halting telemetry thread...")
+        self._stop_event.set()
+
+    def stopped(self):
+        return self._stop_event.is_set()
+
 
 def init_telemetry(handler):
     asyncio.set_event_loop_policy(AnyThreadEventLoopPolicy())
