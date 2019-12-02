@@ -17,6 +17,8 @@ from ydk.models.cisco_ios_xr import Cisco_IOS_XR_l2_eth_infra_datatypes \
 from ydk.models.cisco_ios_xr import Cisco_IOS_XR_l2vpn_cfg \
     as xr_l2vpn_cfg
 from ydk.types import Empty
+from ydk.types import ChildrenMap
+from ydk.filters import YFilter
 import logging
 
 nc_providers = []
@@ -27,7 +29,6 @@ def create_netconf_provider(request):
     username = request['node-user']
     password = request['node-pass']
     protocol = "ssh"
-    interface_name = request ['interface-name']
     # create NETCONF provider
     nc_provider = NetconfServiceProvider(address=address, port=port, username=username, password=password, protocol=protocol)
     nc_provider_dict = {'node-ip':address, 'provider':nc_provider}
@@ -71,10 +72,13 @@ def create_service(request, nc_provider):
     elif request['delete-config'] == 'on':
         crud.delete(nc_provider, if_cfg)
 
+    # create the l2vpn object, database and pw classes
+    # set enable as "Empty" type
     l2vpn_cfg = xr_l2vpn_cfg.L2vpn()
     l2vpn_cfg.enable = Empty()
     l2vpn_cfg.database = xr_l2vpn_cfg.L2vpn.Database()
     l2vpn_cfg.database.pseudowire_classes = l2vpn_cfg.Database.PseudowireClasses()
+
     test_class = xr_l2vpn_cfg.L2vpn.Database.PseudowireClasses.PseudowireClass()
     test_class.name = "ELINE-PW"
     test_class.enable = Empty()
@@ -82,19 +86,23 @@ def create_service(request, nc_provider):
     test_class.mpls_encapsulation.enable = Empty()
     test_class.mpls_encapsulation.control_word = xr_l2vpn_cfg.ControlWord.enable
     l2vpn_cfg.database.pseudowire_classes.pseudowire_class.append(test_class)
+
     l2vpn_cfg.database.xconnect_groups = xr_l2vpn_cfg.L2vpn.Database.XconnectGroups()
     test_group = xr_l2vpn_cfg.L2vpn.Database.XconnectGroups.XconnectGroup()
     test_group.name = "ELINE-SVCS"
     l2vpn_cfg.database.xconnect_groups.xconnect_group.append(test_group)
+
     test_group.p2p_xconnects = l2vpn_cfg.Database.XconnectGroups.XconnectGroup.P2pXconnects()
     test_xconnect = xr_l2vpn_cfg.L2vpn.Database.XconnectGroups.XconnectGroup.P2pXconnects.P2pXconnect()
     test_xconnect.name = request['vlan-id'] + "-" + request['pw-id']
     test_group.p2p_xconnects.p2p_xconnect.append(test_xconnect)
+
     test_xconnect.attachment_circuits = xr_l2vpn_cfg.L2vpn.Database.XconnectGroups.XconnectGroup.P2pXconnects.P2pXconnect.AttachmentCircuits()
     test_ac = xr_l2vpn_cfg.L2vpn.Database.XconnectGroups.XconnectGroup.P2pXconnects.P2pXconnect.AttachmentCircuits.AttachmentCircuit()
     test_ac.name = request['interface-name']
     test_ac.enable = Empty()
     test_xconnect.attachment_circuits.attachment_circuit.append(test_ac)
+
     test_xconnect.pseudowires = xr_l2vpn_cfg.L2vpn.Database.XconnectGroups.XconnectGroup.P2pXconnects.P2pXconnect.Pseudowires()
     test_pw = xr_l2vpn_cfg.L2vpn.Database.XconnectGroups.XconnectGroup.P2pXconnects.P2pXconnect.Pseudowires.Pseudowire()
     test_pw.pseudowire_id = int(request['pw-id'])
@@ -103,12 +111,17 @@ def create_service(request, nc_provider):
     test_neighbor.class_ = "ELINE-PW"
     test_pw.neighbor.append(test_neighbor)
     test_xconnect.pseudowires.pseudowire.append(test_pw)
+
     # the_xml = codec.encode(codec_provider, l2vpn_cfg)
     if request['delete-config'] == 'off':
         crud.create(nc_provider, l2vpn_cfg)
     elif request['delete-config'] == 'on':
-        to_delete = l2vpn_cfg.database.xconnect_groups.xconnect_group.get("ELINE-SVCS")
-        crud.delete(nc_provider, to_delete)
+        xc_group = l2vpn_cfg.database.xconnect_groups.xconnect_group.get("ELINE-SVCS")
+        xc = xc_group.p2p_xconnects.p2p_xconnect[test_xconnect.name]
+        xc.yfilter = YFilter.delete
+        # xc.attachment_circuits.yfilter = YFilter.delete
+        # xc.pseudowires.yfilter = YFilter.delete
+        crud.update(nc_provider, xc_group)
     return
 
 
@@ -116,17 +129,20 @@ def create_service(request, nc_provider):
 def get_cdp(address, port, username, password, protocol):
     # create NETCONF provider
     provider = NetconfServiceProvider(address=address, port=port, username=username, password=password, protocol=protocol)
-
     # create CRUD service
     crud = CRUDService()
-    bgp = oc_bgp.Bgp()  # create object
     cdp = xr_cdp_oper.Cdp()
     cdp = crud.read(provider, cdp)
-    foo =''
+    cdp_neigh =''
     for node in cdp.nodes.node:
         for detail in node.neighbors.details.detail:
-            foo += detail.device_id + '\n'
-    return foo
+            cdp_neigh += detail.device_id + '\n'
+    return cdp_neigh
+
+
+
+    # sample YDK code not used...
+
     # read data from NETCONF device
     # bgp = crud.read(provider, bgp)
     # # create object
