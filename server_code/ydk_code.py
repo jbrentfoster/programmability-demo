@@ -85,6 +85,10 @@ def create_service(request, nc_provider):
     test_class.mpls_encapsulation = xr_l2vpn_cfg.L2vpn.Database.PseudowireClasses.PseudowireClass().MplsEncapsulation()
     test_class.mpls_encapsulation.enable = Empty()
     test_class.mpls_encapsulation.control_word = xr_l2vpn_cfg.ControlWord.enable
+    flow_label = xr_l2vpn_cfg.FlowLabelLoadBalance()
+    # flow_label = xr_l2vpn_cfg.L2vpn.Database.PseudowireClasses.PseudowireClass.MplsEncapsulation.LoadBalanceGroup.FlowLabelLoadBalance()
+    test_class.mpls_encapsulation.load_balance_group = xr_l2vpn_cfg.L2vpn.Database.PseudowireClasses.PseudowireClass.MplsEncapsulation.LoadBalanceGroup()
+    test_class.mpls_encapsulation.load_balance_group.flow_label_load_balance.flow_label = flow_label.both
     l2vpn_cfg.database.pseudowire_classes.pseudowire_class.append(test_class)
 
     l2vpn_cfg.database.xconnect_groups = xr_l2vpn_cfg.L2vpn.Database.XconnectGroups()
@@ -112,7 +116,7 @@ def create_service(request, nc_provider):
     test_pw.neighbor.append(test_neighbor)
     test_xconnect.pseudowires.pseudowire.append(test_pw)
 
-    # the_xml = codec.encode(codec_provider, l2vpn_cfg)
+    the_xml = codec.encode(codec_provider, l2vpn_cfg)
     if request['delete-config'] == 'off':
         crud.create(nc_provider, l2vpn_cfg)
     elif request['delete-config'] == 'on':

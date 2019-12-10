@@ -23,13 +23,9 @@ from distutils.dir_util import mkpath
 
 # global variables...
 initial_url = "https://jsonplaceholder.typicode.com/posts"
-# node_ip = "192.168.0.1"
-# node_user = "cisco"
-# node_pass = "cisco"
 open_websockets = []
 telemetry_thread = None
-telemetry_url = "http://192.168.5.102:3000/d/E5LFSC1Wz/telegraf?from=1574451327540&to=1574472927540&orgId=1&theme=light"
-
+telemetry_url = "http://192.168.5.102:3000/d/If-Nz2-Zk/verizon-segment-routing-demo-asr9k-01?orgId=1&refresh=10s&from=1575919364336&to=1575921164336&theme=light"
 class IndexHandler(tornado.web.RequestHandler):
 
     async def get(self):

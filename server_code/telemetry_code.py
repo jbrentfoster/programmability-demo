@@ -41,8 +41,8 @@ TIMEOUT = 60
 
 def process_telemetry_msg(msg, handler):
     telemetry_encoding_path = "Cisco-IOS-XR-pfi-im-cmd-oper:interfaces/interface-xr/interface"
-    node = "iosxrv-1"
-    intf = "GigabitEthernet0/0/0/0"
+    node = "asr9k-01"
+    intf = "TenGigE0/0/0/1"
     # msg = json.loads(kafka_msg.value.decode('utf-8'))
     logging.debug("Kafka message is from " + msg['tags']['Producer'] + "...")
     if (msg["tags"]["Producer"] == node and
@@ -73,7 +73,7 @@ class Consumer(threading.Thread):
     def run(self):
         for message in self._consumer:
             # message = str(message)
-            message_decode = message.value.decode("utf-8")
+            # message_decode = message.value.decode("utf-8")
             message_dict = json.loads(message.value.decode("utf-8", errors='ignore'))
             logging.debug("Message received from kafka...")
             # logging.info(json.dumps(message_dict, indent=2, sort_keys=True))
