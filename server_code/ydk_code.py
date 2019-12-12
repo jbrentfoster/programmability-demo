@@ -16,6 +16,12 @@ from ydk.models.cisco_ios_xr import Cisco_IOS_XR_l2_eth_infra_datatypes \
     as xr_eth_infra_dt
 from ydk.models.cisco_ios_xr import Cisco_IOS_XR_l2vpn_cfg \
     as xr_l2vpn_cfg
+from ydk.models.cisco_ios_xr import Cisco_IOS_XR_ipv4_bgp_cfg \
+    as xr_ipv4_bgp_cfg
+from ydk.models.cisco_ios_xr import Cisco_IOS_XR_ipv4_bgp_datatypes \
+    as xr_ipv4_bgp_datatypes
+from ydk.models.cisco_ios_xr import Cisco_IOS_XR_ipv4_io_cfg \
+    as xr_ipv4_io_cfg
 from ydk.types import Empty
 from ydk.types import ChildrenMap
 from ydk.filters import YFilter
@@ -128,6 +134,93 @@ def create_service(request, nc_provider):
         crud.update(nc_provider, xc_group)
     return
 
+def create_l3_service(request, nc_provider):
+    # create CRUD service
+    crud = CRUDService()
+    # create codec provider
+    codec_provider = CodecServiceProvider(type="xml")
+    # create codec service
+    codec = CodecService()
+
+    # interface configuration
+    interface_name = request['interface-name']
+    # create ifmgr obj
+    if_cfg = xr_ifmgr_cfg.InterfaceConfigurations.InterfaceConfiguration()
+    if_cfg.active = "act"
+    if_cfg.interface_name = interface_name
+    if_cfg.interface_mode_non_physical = xr_ifmgr_cfg.InterfaceModeEnum.default
+
+    if_cfg.statistics = xr_ifmgr_cfg.InterfaceConfigurations.InterfaceConfiguration.Statistics()
+    if_cfg.statistics.load_interval = 30
+
+    if_cfg.ipv4_network = xr_ifmgr_cfg.InterfaceConfigurations.InterfaceConfiguration.Ipv4Network()
+    if_cfg.ipv4_network.addresses = xr_ifmgr_cfg.InterfaceConfigurations.InterfaceConfiguration.Ipv4Network().Addresses()
+
+    primary_address = xr_ifmgr_cfg.InterfaceConfigurations.InterfaceConfiguration.Ipv4Network().Addresses().Primary()
+    primary_address.address = "192.168.33.2"
+    primary_address.netmask = "255.255.255.252"
+
+    if_cfg.ipv4_network.addresses.primary = primary_address
+
+    if_cfg.vlan_sub_configuration = xr_ifmgr_cfg.InterfaceConfigurations.InterfaceConfiguration().VlanSubConfiguration()
+    if_cfg.vlan_sub_configuration.vlan_identifier = xr_ifmgr_cfg.InterfaceConfigurations.InterfaceConfiguration().VlanSubConfiguration().VlanIdentifier()
+    if_cfg.vlan_sub_configuration.vlan_identifier.first_tag = int(request['vlan-id'])
+    encap_type = xr_eth_infra_dt.Vlan.vlan_type_dot1q
+    if_cfg.vlan_sub_configuration.vlan_identifier.vlan_type = encap_type
+
+    the_xml = codec.encode(codec_provider, if_cfg)
+    # logging.info(the_xml)
+    # create the interface configurations add the if_cfg to it
+    if_cfgs = xr_ifmgr_cfg.InterfaceConfigurations()
+    if_cfgs.interface_configuration.append(if_cfg)
+
+    if request['delete-config'] == 'off':
+        crud.create(nc_provider, if_cfgs)
+    elif request['delete-config'] == 'on':
+        crud.delete(nc_provider, if_cfg)
+
+    # global configuration
+    bgp = xr_ipv4_bgp_cfg.Bgp()
+    instance = bgp.Instance()
+    instance.instance_name = "default"
+    instance_as = instance.InstanceAs()
+    instance_as.as_ = 0
+    four_byte_as = instance_as.FourByteAs()
+    four_byte_as.as_ = 661
+    four_byte_as.bgp_running = Empty()
+    # global address family
+    global_af = four_byte_as.default_vrf.global_.global_afs.GlobalAf()
+    global_af.af_name = xr_ipv4_bgp_datatypes.BgpAddressFamily.ipv4_unicast
+    global_af.enable = Empty()
+    global_af.sourced_networks = four_byte_as.default_vrf.global_.global_afs.GlobalAf().SourcedNetworks()
+    network = four_byte_as.default_vrf.global_.global_afs.GlobalAf().SourcedNetworks().SourcedNetwork()
+    network.network_addr = "123.123.123.0"
+    network.network_prefix = 30
+    # if request['delete-config'] == 'on':
+    #     network = YFilter.delete
+    global_af.sourced_networks.sourced_network.append(network)
+
+    four_byte_as.default_vrf.global_.global_afs.global_af.append(global_af)
+    instance_as.four_byte_as.append(four_byte_as)
+    instance.instance_as.append(instance_as)
+    bgp.instance.append(instance)
+
+
+    the_xml = codec.encode(codec_provider, bgp)
+    logging.info(the_xml)
+
+    if request['delete-config'] == 'off':
+        crud.create(nc_provider, bgp)
+    elif request['delete-config'] == 'on':
+        # crud.delete(nc_provider, bgp)
+    #     # xc_group = l2vpn_cfg.database.xconnect_groups.xconnect_group.get("ELINE-SVCS")
+    #     # xc = xc_group.p2p_xconnects.p2p_xconnect[test_xconnect.name]
+    #     # xc.yfilter = YFilter.delete
+    #     # xc.attachment_circuits.yfilter = YFilter.delete
+    #     # xc.pseudowires.yfilter = YFilter.delete
+    #     crud.update(nc_provider, bgp)
+
+    return
 
 
 def get_cdp(address, port, username, password, protocol):

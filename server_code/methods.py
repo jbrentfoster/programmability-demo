@@ -38,7 +38,7 @@ def execute_ydk(ajax_handler, request):
             provider_dict = ydk_code.create_netconf_provider(request)
             provider = provider_dict['provider']
             ydk_code.nc_providers.append(provider_dict)
-        ydk_code.create_service(request, provider)
+        ydk_code.create_l3_service(request, provider)
         result = {'action': request['action'], 'status': 'completed'}
         logging.info(result)
         ajax_handler.write(json.dumps(result))
