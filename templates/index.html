@@ -31,29 +31,34 @@
                        value="cisco">
             </div>
         </div>
-        <h5>Pseudowire Service Configuration Parameters</h5>
+        <h5>Service Configuration Parameters</h5>
         <div class="form-row">
             <div class="form-group col-md-3">
                 <label>Interface Name</label>
                 <input name="interface-name" type="text" class="form-control" id="interfaceName"
-                       value="TenGigE0/0/2/3.1">
+                       value="TenGigE0/0/2/2.10">
             </div>
             <div class="form-group col-md-2">
                 <label>VLAN ID</label>
                 <input name="vlan-id" type="text" class="form-control" id="vlanID"
-                       value="100">
+                       value="10">
             </div>
         </div>
         <div class="form-row">
             <div class="form-group col-md-3">
-                <label>Neighbor IP Address</label>
-                <input name="neighbor-ip" type="text" class="form-control" id="neighborIP"
-                       value="192.168.0.29">
+                <label>Interface IP Address</label>
+                <input name="intf-ip" type="text" class="form-control" id="neighborIP"
+                       value="192.168.66.2">
             </div>
             <div class="form-group col-md-2">
-                <label>Pseudowire ID</label>
-                <input name="pw-id" type="text" class="form-control" id="pwID"
-                       value="46">
+                <label>Netmask</label>
+                <input name="mask" type="text" class="form-control" id="netMask"
+                       value="30">
+            </div>
+            <div class="form-group col-md-2">
+                <label>BGP AS</label>
+                <input name="bgp-as" type="text" class="form-control" id="bgpAs"
+                       value="661">
             </div>
         </div>
         <div class="form-row align-items-center" >

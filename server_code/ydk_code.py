@@ -22,6 +22,9 @@ from ydk.models.cisco_ios_xr import Cisco_IOS_XR_ipv4_bgp_datatypes \
     as xr_ipv4_bgp_datatypes
 from ydk.models.cisco_ios_xr import Cisco_IOS_XR_ipv4_io_cfg \
     as xr_ipv4_io_cfg
+from ydk.models.openconfig import openconfig_bgp \
+    as oc_bgp
+from ydk.models.openconfig import openconfig_bgp_types as oc_bgp_types
 from ydk.types import Empty
 from ydk.types import ChildrenMap
 from ydk.filters import YFilter
@@ -157,7 +160,7 @@ def create_l3_service(request, nc_provider):
     if_cfg.ipv4_network.addresses = xr_ifmgr_cfg.InterfaceConfigurations.InterfaceConfiguration.Ipv4Network().Addresses()
 
     primary_address = xr_ifmgr_cfg.InterfaceConfigurations.InterfaceConfiguration.Ipv4Network().Addresses().Primary()
-    primary_address.address = "192.168.33.2"
+    primary_address.address = request['intf-ip']
     primary_address.netmask = "255.255.255.252"
 
     if_cfg.ipv4_network.addresses.primary = primary_address
@@ -186,7 +189,7 @@ def create_l3_service(request, nc_provider):
     instance_as = instance.InstanceAs()
     instance_as.as_ = 0
     four_byte_as = instance_as.FourByteAs()
-    four_byte_as.as_ = 661
+    four_byte_as.as_ = int(request['bgp-as'])
     four_byte_as.bgp_running = Empty()
     # global address family
     global_af = four_byte_as.default_vrf.global_.global_afs.GlobalAf()
@@ -194,10 +197,10 @@ def create_l3_service(request, nc_provider):
     global_af.enable = Empty()
     global_af.sourced_networks = four_byte_as.default_vrf.global_.global_afs.GlobalAf().SourcedNetworks()
     network = four_byte_as.default_vrf.global_.global_afs.GlobalAf().SourcedNetworks().SourcedNetwork()
-    network.network_addr = "123.123.123.0"
-    network.network_prefix = 30
-    # if request['delete-config'] == 'on':
-    #     network = YFilter.delete
+    addr_parsed = request['intf-ip'].split('.')
+    addr = addr_parsed[0] + "." + addr_parsed[1] + "." + addr_parsed[2] + ".0"
+    network.network_addr = addr
+    network.network_prefix = int(request['mask'])
     global_af.sourced_networks.sourced_network.append(network)
 
     four_byte_as.default_vrf.global_.global_afs.global_af.append(global_af)
@@ -212,13 +215,11 @@ def create_l3_service(request, nc_provider):
     if request['delete-config'] == 'off':
         crud.create(nc_provider, bgp)
     elif request['delete-config'] == 'on':
-        # crud.delete(nc_provider, bgp)
-    #     # xc_group = l2vpn_cfg.database.xconnect_groups.xconnect_group.get("ELINE-SVCS")
-    #     # xc = xc_group.p2p_xconnects.p2p_xconnect[test_xconnect.name]
-    #     # xc.yfilter = YFilter.delete
-    #     # xc.attachment_circuits.yfilter = YFilter.delete
-    #     # xc.pseudowires.yfilter = YFilter.delete
-    #     crud.update(nc_provider, bgp)
+        bgp_instance = bgp.instance['default']
+        sourced = bgp.instance['default'].instance_as['0'].four_byte_as[request['bgp-as']].default_vrf.global_.global_afs.global_af['ipv4-unicast'].sourced_networks
+        sn = sourced.sourced_network[addr, int(request['mask'])]
+        sn.yfilter = YFilter.delete
+        crud.update(nc_provider, bgp)
 
     return
 
