@@ -59,7 +59,8 @@ def process_telemetry_msg(msg, handler):
             except Exception as err:
                 pass
     except Exception as err:
-        logging.info("Invalid message from kafka.")
+        pass
+        # logging.info("Invalid message from kafka.")
 
 
 class Consumer(threading.Thread):
