@@ -11,7 +11,7 @@ import collections
 from argparse import ArgumentParser
 
 KAFKA_TOPIC = 'telegraf'
-KAFKA_BOOTSTRAP_SERVER = 'localhost:9092'
+KAFKA_BOOTSTRAP_SERVER = '10.135.7.226:9092'
 TIMEOUT = 60
 
 
@@ -45,18 +45,21 @@ def process_telemetry_msg(msg, handler):
     intf_1 = "TenGigE0/0/0/1"
     intf_0 = "TenGigE0/0/0/0"
     # msg = json.loads(kafka_msg.value.decode('utf-8'))
-    logging.debug("Kafka message is from " + msg['tags']['Producer'] + "...")
-    if (msg["tags"]["Producer"] == node and
-            msg["name"] == telemetry_encoding_path
-            and "fields" in msg):
-        try:
-            if_name = msg['tags']['interface-name']
-            output_rate = msg['fields']['data-rates/output-data-rate']
-            if if_name == intf_1 or if_name == intf_0:
-                msg_text = "Kafka message: " + msg["tags"]["Producer"] + " " + if_name + " output rate: " + str(output_rate) + " kbps"
-                handler.send_message_open_ws(msg_text)
-        except Exception as err:
-            pass
+    try:
+        logging.debug("Kafka message is from " + msg['tags']['Producer'] + "...")
+        if (msg["tags"]["Producer"] == node and
+                msg["name"] == telemetry_encoding_path
+                and "fields" in msg):
+            try:
+                if_name = msg['tags']['interface-name']
+                output_rate = msg['fields']['data-rates/output-data-rate']
+                if if_name == intf_1 or if_name == intf_0:
+                    msg_text = "Kafka message: " + msg["tags"]["Producer"] + " " + if_name + " output rate: " + str(output_rate) + " kbps"
+                    handler.send_message_open_ws(msg_text)
+            except Exception as err:
+                pass
+    except Exception as err:
+        logging.info("Invalid message from kafka.")
 
 
 class Consumer(threading.Thread):
