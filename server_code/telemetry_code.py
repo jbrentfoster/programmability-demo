@@ -1,3 +1,17 @@
+"""Python example script showing proper use of the Cisco Sample Code header.
+Copyright (c) {{current_year}} Cisco and/or its affiliates.
+This software is licensed to you under the terms of the Cisco Sample
+Code License, Version 1.1 (the "License"). You may obtain a copy of the
+License at
+               https://developer.cisco.com/docs/licenses
+All use of the material herein must be in accordance with the terms of
+the License. All rights not expressly granted by the License are
+reserved. Unless required by applicable law or agreed to separately in
+writing, software distributed under the License is distributed on an "AS
+IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+or implied.
+"""
+
 from kafka import KafkaConsumer
 from kafka import TopicPartition
 from tornado.platform.asyncio import AnyThreadEventLoopPolicy
@@ -10,34 +24,14 @@ import threading
 import collections
 from argparse import ArgumentParser
 
+__author__ = "Brent Foster <brfoster@cisco.com>"
+__copyright__ = "Copyright (c) 2020 Cisco and/or its affiliates."
+__license__ = "Cisco Sample Code License, Version 1.1"
+
+
 KAFKA_TOPIC = 'telegraf'
 KAFKA_BOOTSTRAP_SERVER = '10.135.7.226:9092'
 TIMEOUT = 60
-
-
-# def validate_bgp_peer(kafka_consumer, node, peer_address,
-#                       session_state=SESSION_STATE_ESTABLISHED,
-#                       timeout=TIMEOUT):
-#     """Validate BGP session state."""
-#     telemetry_encoding_path = "openconfig-network-instance:network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor"
-#     start_time = time.time()
-#     for kafka_msg in kafka_consumer:
-#         msg = json.loads(kafka_msg.value.decode('utf-8'))
-#         if (msg["Telemetry"]["node_id_str"] == node and
-#                 msg["Telemetry"]["encoding_path"] == telemetry_encoding_path
-#                 and "Rows" in msg):
-#             for row in msg["Rows"]:
-#                 if ("neighbor-address" in row["Keys"] and
-#                         row["Keys"]["neighbor-address"] == peer_address and
-#                         "state" in row["Content"] and
-#                         "session-state" in row["Content"]["state"] and
-#                         row["Content"]["state"]["session-state"] == session_state):
-#                     return True
-#
-#         if time.time() - start_time > timeout:
-#             break
-#
-#     return False
 
 def process_telemetry_msg(msg, handler):
     telemetry_encoding_path = "Cisco-IOS-XR-pfi-im-cmd-oper:interfaces/interface-xr/interface"

@@ -1,3 +1,17 @@
+"""Python example script showing proper use of the Cisco Sample Code header.
+Copyright (c) {{current_year}} Cisco and/or its affiliates.
+This software is licensed to you under the terms of the Cisco Sample
+Code License, Version 1.1 (the "License"). You may obtain a copy of the
+License at
+               https://developer.cisco.com/docs/licenses
+All use of the material herein must be in accordance with the terms of
+the License. All rights not expressly granted by the License are
+reserved. Unless required by applicable law or agreed to separately in
+writing, software distributed under the License is distributed on an "AS
+IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+or implied.
+"""
+
 from ydk.services import CRUDService
 from ydk.providers import NetconfServiceProvider
 from ydk.services import CodecService
@@ -29,6 +43,10 @@ from ydk.types import Empty
 from ydk.types import ChildrenMap
 from ydk.filters import YFilter
 import logging
+
+__author__ = "Brent Foster <brfoster@cisco.com>"
+__copyright__ = "Copyright (c) 2020 Cisco and/or its affiliates."
+__license__ = "Cisco Sample Code License, Version 1.1"
 
 nc_providers = []
 
@@ -236,65 +254,3 @@ def get_cdp(address, port, username, password, protocol):
         for detail in node.neighbors.details.detail:
             cdp_neigh += detail.device_id + '\n'
     return cdp_neigh
-
-
-
-    # sample YDK code not used...
-
-    # read data from NETCONF device
-    # bgp = crud.read(provider, bgp)
-    # # create object
-    # isis_obj = xr_clns_isis_oper.Isis()
-    # # read data from NETCONF device
-    # isis = crud.read(provider, isis_obj)
-    #
-    # """Process data in isis object."""
-    # # format string for isis neighbor header
-    # isis_header = ("IS-IS {instance} neighbors:\n"
-    #                "System Id      Interface        SNPA           State "
-    #                "Holdtime Type IETF-NSF")
-    # # format string for isis neighbor row
-    # isis_row = ("{sys_id:<14} {intf:<16} {snpa:<14} {state:<5} "
-    #             "{hold:<8} {type_:<4} {ietf_nsf:^8}")
-    # # format string for isis neighbor trailer
-    # isis_trailer = "Total neighbor count: {count}"
-    #
-    # nbr_state = {0: "Up", 1: "Init", 2: "Fail"}
-    # nbr_type = {0: "None", 1: "L1", 2: "L2", 3: "L1L2"}
-    #
-    # if isis.instances.instance:
-    #     show_isis_nbr = str()
-    # else:
-    #     show_isis_nbr = "No IS-IS instances found"
-    #
-    # # iterate over all instances
-    # for instance in isis.instances.instance:
-    #     if show_isis_nbr:
-    #         show_isis_nbr += "\n\n"
-    #
-    #     show_isis_nbr += isis_header.format(instance=instance.instance_name)
-    #     nbr_count = 0
-    #     host_name = instance.host_names.host_name
-    #     host_names = dict([(h.system_id, h.host_name) for h in host_name])
-    #     # iterate over all neighbors
-    #     for neighbor in instance.neighbors.neighbor:
-    #         nbr_count += 1
-    #         sys_id = host_names[neighbor.system_id]
-    #         intf = (neighbor.interface_name[:2] +
-    #                 re.sub(r'\D+', "", neighbor.interface_name, 1))
-    #         state = nbr_state[neighbor.neighbor_state.value]
-    #         type_ = nbr_type[neighbor.neighbor_circuit_type.value]
-    #         ietf_nsf = "Y" if neighbor.neighbor_ietf_nsf_capable_flag else "N"
-    #         show_isis_nbr += ("\n" +
-    #                           isis_row.format(sys_id=sys_id,
-    #                                           intf=intf,
-    #                                           snpa=neighbor.neighbor_snpa,
-    #                                           state=state,
-    #                                           hold=neighbor.neighbor_holdtime,
-    #                                           type_=type_,
-    #                                           ietf_nsf=ietf_nsf))
-    #     if nbr_count:
-    #         show_isis_nbr += "\n\n" + isis_trailer.format(count=nbr_count)
-    #
-    # # return formatted string
-    # return show_isis_nbr
