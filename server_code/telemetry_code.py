@@ -76,6 +76,7 @@ class Consumer(threading.Thread):
             message_dict = json.loads(message.value.decode("utf-8", errors='ignore'))
             logging.debug("Message received from kafka...")
             # logging.info(json.dumps(message_dict, indent=2, sort_keys=True))
+            logging.info("Telemetry message received.")
             process_telemetry_msg(message_dict, self.handler)
             # self.handler.send_message_open_ws(json.dumps(message_dict, indent=2, sort_keys=True))
 
