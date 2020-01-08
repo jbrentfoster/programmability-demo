@@ -1,8 +1,8 @@
 Sample web server and client application.  Can be used for prototyping and demonstrations.  Uses tornado web server framework and javascript client.
 
 Key Cisco technologies:
-YANG Development Kit (YDK)
-Streaming telemetry (via Kafka)
+- YANG Development Kit (YDK)
+- Streaming telemetry (via Kafka)
 
 Pre-requisites:
 
@@ -14,25 +14,28 @@ Please make sure to review and install the minimum libraries described in the Sy
 
 Example steps:
 
-virtualenv -p python3 ydk-python3-venv
-source ydk-python3-venv/bin/activate
-pip install ydk
-pip install ydk-models-cisco-ios-xr
-pip install ydk-models-openconfig
+`virtualenv -p python3 ydk-python3-venv`
+
+`source ydk-python3-venv/bin/activate`
+
+`pip install ydk`
+
+`pip install ydk-models-cisco-ios-xr`
+
+`pip install ydk-models-openconfig`
 
 When completed your virtual environment should have the following packages installed:
 
-(test-ydk-venv)$ pip list
+```(test-ydk-venv)$ pip list
+
 Package                 Version
------------------------ -----------
 pip                     19.3.1
 pybind11                2.4.3
 setuptools              44.0.0
 wheel                   0.33.6
 ydk                     0.8.4
 ydk-models-cisco-ios-xr 6.6.2
-ydk-models-openconfig   0.1.6.post1
-
+ydk-models-openconfig   0.1.6.post1```
 
 Remaining setup instructions:
 
