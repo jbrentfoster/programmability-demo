@@ -35,7 +35,7 @@ setuptools              44.0.0
 wheel                   0.33.6
 ydk                     0.8.4
 ydk-models-cisco-ios-xr 6.6.2
-ydk-models-openconfig   0.1.6.post1```
+ydk-models-openconfig   0.1.6.post1
 
 Remaining setup instructions:
 
