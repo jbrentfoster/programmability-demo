@@ -30,7 +30,7 @@ __license__ = "Cisco Sample Code License, Version 1.1"
 
 
 KAFKA_TOPIC = 'telegraf'
-KAFKA_BOOTSTRAP_SERVER = '10.135.7.226:9092'
+KAFKA_BOOTSTRAP_SERVER = 'localhost:9092'
 TIMEOUT = 60
 
 def process_telemetry_msg(msg, handler):
