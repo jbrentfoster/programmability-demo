@@ -82,6 +82,9 @@ class Consumer(threading.Thread):
     def subscribe(self, topic):
         self._consumer.subscribe(KAFKA_TOPIC)
 
+    def unsubscribe(self):
+        self._consumer.unsubscribe()
+
     def close(self):
         self._consumer.close()
 

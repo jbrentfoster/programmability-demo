@@ -49,8 +49,8 @@ class IndexHandler(tornado.web.RequestHandler):
     async def get(self):
         global telemetry_thread
         await self.render("templates/index.html", port=args.port)
-        if telemetry_thread is not None:
-            telemetry_thread.pause()
+        # if telemetry_thread is not None:
+        #     telemetry_thread.pause()
 
 
 class AjaxHandler(tornado.web.RequestHandler):
@@ -107,6 +107,8 @@ class TelemetryHandler(tornado.web.RequestHandler):
             telemetry_thread.resume()
 
     def send_message_open_ws(self, message):
+        if len(open_websockets) == 0:
+            logging.info("Currently no open websockets, discarding message.")
         for ws in open_websockets:
             ws.send_message(message)
 
