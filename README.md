@@ -41,13 +41,13 @@ Remaining setup instructions:
 
 1) Activate virtual environment as per pre-requisites section above.  Example,
 
-`source ydk-python3-venv/bin/activate`
+source ydk-python3-venv/bin/activate
 
 2) Install required packages.
 
-`pip install requests
+pip install requests
 pip install tornado
-pip install kafka`
+pip install kafka
 
 3) Clone the repo to your local machine:
 
@@ -55,16 +55,16 @@ $ git clone https://github.com/jbrentfoster/programmability-demo.git
 
 To start the server:
 
-`cd programmability-demo`
-`python server.py --port [port number]`
+cd programmability-demo
+python server.py --port [port number]
 
 Example,
 
-    (python3.7-venv) python server.py --port 8000`
+    (python3.7-venv) python server.py --port 8000
     
 Open a Web browser and enter the URL, example
 
-`http://127.0.0.1:8000/`
+http://127.0.0.1:8000/
 
 Note that the example will only work with Cisco IOS-XR devices running 6.x or later.
 
