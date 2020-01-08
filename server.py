@@ -40,26 +40,33 @@ __copyright__ = "Copyright (c) 2020 Cisco and/or its affiliates."
 __license__ = "Cisco Sample Code License, Version 1.1"
 
 # global variables...
-initial_url = "https://jsonplaceholder.typicode.com/posts"
 open_websockets = []
 telemetry_thread = None
+telemetry_encoding_path = "Cisco-IOS-XR-pfi-im-cmd-oper:interfaces/interface-xr/interface"
 telemetry_url = "http://192.168.5.102:3000/d/If-Nz2-Zk/verizon-segment-routing-demo-asr9k-01?orgId=1&refresh=10s&from=1575919364336&to=1575921164336&theme=light"
+KAFKA_TOPIC = 'telegraf'
+KAFKA_BOOTSTRAP_SERVER = '10.135.7.226:9092'
+
+
 class IndexHandler(tornado.web.RequestHandler):
 
     async def get(self):
         global telemetry_thread
         await self.render("templates/index.html", port=args.port)
-        # if telemetry_thread is not None:
-        #     telemetry_thread.pause()
+        if telemetry_thread is not None:
+            telemetry_thread.pause()
 
 
 class AjaxHandler(tornado.web.RequestHandler):
 
     async def post(self):
-        global initial_url
         global node_ip
         global node_user
         global node_pass
+        global KAFKA_BOOTSTRAP_SERVER
+        global KAFKA_TOPIC
+        global telemetry_encoding_path
+        global telemetry_thread
 
         request_body = self.request.body.decode("utf-8")
         # request = tornado.escape.recursive_unicode(self.request.arguments)
@@ -76,10 +83,20 @@ class AjaxHandler(tornado.web.RequestHandler):
             logging.info(response)
             self.write(json.dumps(response))
 
-        if action == 'send-request':
-            initial_url = request['url']
-            methods.send_request(self, request)
-            # methods.execute_ydk(self, request)
+        if action == 'update-telemetry':
+            logging.info("Telemetry update...")
+            KAFKA_BOOTSTRAP_SERVER = request['kafka-ip']
+            KAFKA_TOPIC = request['kafka-topic']
+            telemetry_encoding_path = request['telemetry-path']
+            if telemetry_thread is None:
+                try:
+                    telemetry_thread = telemetry_code.init_telemetry(self, kafka_server=KAFKA_BOOTSTRAP_SERVER,
+                                                                     kafka_topic=KAFKA_TOPIC,
+                                                                     telemetry_path=telemetry_encoding_path)
+                except Exception as err:
+                    logging.error("Connection to kafka server could not be established!")
+            else:
+                telemetry_thread.resume()
         elif action == 'execute-config':
             node_ip = request['node-ip']
             node_user = request['node-user']
@@ -95,16 +112,19 @@ class AjaxHandler(tornado.web.RequestHandler):
         for ws in open_websockets:
             ws.send_message(message)
 
+
 class TelemetryHandler(tornado.web.RequestHandler):
 
     def get(self):
-        global telemetry_thread
-        global telemetry_url
-        self.render("templates/telemetry_template.html", port=args.port, telemetry_url=telemetry_url)
-        if telemetry_thread is None:
-            telemetry_thread = telemetry_code.init_telemetry(self)
-        else:
+        if telemetry_thread is not None:
             telemetry_thread.resume()
+            gray_button = True
+        global telemetry_thread
+        # TODO Gray out button if telemetry threading has already started
+        global telemetry_url
+        self.render("templates/telemetry_template.html", port=args.port, telemetry_url=telemetry_url,
+                    kafka_ip=KAFKA_BOOTSTRAP_SERVER, kafka_topic=KAFKA_TOPIC, telemetry_path=telemetry_encoding_path)
+
 
     def send_message_open_ws(self, message):
         if len(open_websockets) == 0:
@@ -112,11 +132,13 @@ class TelemetryHandler(tornado.web.RequestHandler):
         for ws in open_websockets:
             ws.send_message(message)
 
+
 class ResponseHandler(tornado.web.RequestHandler):
 
     def get(self):
         response = methods.get_response()
         self.render("templates/response_template.html", response=response)
+
 
 class ReferencesHandler(tornado.web.RequestHandler):
 

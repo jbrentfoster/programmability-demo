@@ -29,9 +29,10 @@ __copyright__ = "Copyright (c) 2020 Cisco and/or its affiliates."
 __license__ = "Cisco Sample Code License, Version 1.1"
 
 
-KAFKA_TOPIC = 'telegraf'
-KAFKA_BOOTSTRAP_SERVER = '10.135.7.226:9092'
+# KAFKA_TOPIC = 'telegraf'
+# KAFKA_BOOTSTRAP_SERVER = '10.135.7.226:9092'
 TIMEOUT = 60
+TELEMETRY_PATH = ""
 
 def process_telemetry_msg(msg, handler):
     telemetry_encoding_path = "Cisco-IOS-XR-pfi-im-cmd-oper:interfaces/interface-xr/interface"
@@ -66,7 +67,7 @@ class Consumer(threading.Thread):
     def __init__(self, kafka_consumer, handler):
         self._consumer = kafka_consumer
         super(Consumer, self).__init__()
-        # self._stop_event = threading.Event()
+        self._stop_event = threading.Event()
         self.handler = handler
 
     def run(self):
@@ -111,9 +112,10 @@ class Consumer(threading.Thread):
         return self._stop_event.is_set()
 
 
-def init_telemetry(handler):
+def init_telemetry(handler, kafka_topic, kafka_server, telemetry_path):
+    TELEMETRY_PATH = telemetry_path
     asyncio.set_event_loop_policy(AnyThreadEventLoopPolicy())
-    kafka_consumer = KafkaConsumer(KAFKA_TOPIC, bootstrap_servers=KAFKA_BOOTSTRAP_SERVER)
+    kafka_consumer = KafkaConsumer(kafka_topic, bootstrap_servers=kafka_server)
     my_consumer = Consumer(kafka_consumer, handler)
     # Start the kafka consumer thread.
     my_consumer.start()

@@ -24,15 +24,15 @@
 
  $(document).ready(function() {
     //Functions for form submission
-    $("#collectform").on("submit", function() {
-        console.log("Collection button collect-btn called from form submit!");
-        call_rest($(this));
-        return false;
-    });
-
     $("#config-form").on("submit", function() {
         console.log("Collection button config-btn called from form submit!");
         call_config($(this));
+        return false;
+    });
+
+    $("#telemetry-form").on("submit", function() {
+        console.log("Telemetry button telemetry-btn called from form submit!");
+        call_telemetry($(this));
         return false;
     });
 
@@ -47,14 +47,13 @@
  });
 
 
-function call_rest(form) {
+function call_telemetry(form) {
     var message = form.form2Dict();
-    var btn_txt = 'Test REST'
+    var btn_txt = 'OK'
     var btn = $("#collect-btn");
     var btn_spinner_html = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" id="spinner"></span>' + btn_txt;
     btn.html(btn_spinner_html);
     btn.attr("disabled","disabled");
-    $("#updatefield").append("Sending URL to server to execute request...<br>");
     jQuery().postJSON("/ajax", message, function(response) {
         console.log("Callback!!!");
         if (response.status == 'failed') {
