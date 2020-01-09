@@ -116,10 +116,10 @@ class AjaxHandler(tornado.web.RequestHandler):
 class TelemetryHandler(tornado.web.RequestHandler):
 
     def get(self):
+        global telemetry_thread
         if telemetry_thread is not None:
             telemetry_thread.resume()
             gray_button = True
-        global telemetry_thread
         # TODO Gray out button if telemetry threading has already started
         global telemetry_url
         self.render("templates/telemetry_template.html", port=args.port, telemetry_url=telemetry_url,

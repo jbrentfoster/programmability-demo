@@ -4,6 +4,14 @@ Key Cisco technologies:
 - YANG Development Kit (YDK)
 - Streaming telemetry (via Kafka)
 
+**Main Page**
+
+![foo](mainpage2.png)
+
+**Telemetry Page**
+
+![bar](telemetrypage.png)
+
 Pre-requisites:
 
 You must have a working Python3 virtual environment with Cisco YANG Development kit (YDK) packages installed.  For YDK installation please refer to
@@ -26,16 +34,14 @@ Example steps:
 
 When completed your virtual environment should have the following packages installed:
 
-```(test-ydk-venv)$ pip list
+- pip                     19.3.1
+- pybind11                2.4.3
+- setuptools              44.0.0
+- wheel                   0.33.6
+- ydk                     0.8.4
+- ydk-models-cisco-ios-xr 6.6.2
+- ydk-models-openconfig   0.1.6.post1
 
-Package                 Version
-pip                     19.3.1
-pybind11                2.4.3
-setuptools              44.0.0
-wheel                   0.33.6
-ydk                     0.8.4
-ydk-models-cisco-ios-xr 6.6.2
-ydk-models-openconfig   0.1.6.post1
 
 Remaining setup instructions:
 
@@ -70,8 +76,7 @@ Note that the example will only work with Cisco IOS-XR devices running 6.x or la
 
 For telemetry page to work properly, you must have a working telemetry collection stack with a Kafka topic.
 
-In the telemetry_code.py file edit the following lines:
-KAFKA_TOPIC = 'telegraf'
-KAFKA_BOOTSTRAP_SERVER = 'localhost:9092'
+![telemetry](./telemetry_stack2.png)
 
-Other custimization of the code within that file will be required such as the node name, telemetry xpath, etc.
+Custimization of the code within the telemetry_code.py file will be
+required to properly process your telemetry messages.
