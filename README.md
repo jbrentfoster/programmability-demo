@@ -6,13 +6,13 @@ Key Cisco technologies:
 
 **Main Page**
 
-![foo](mainpage2.png)
+![mainpage](mainpage2.png)
 
 **Telemetry Page**
 
-![bar](telemetrypage.png)
+![telemetrypage](telemetrypage4.png)
 
-Pre-requisites:
+**Pre-requisites:**
 
 You must have a working Python3 virtual environment with Cisco YANG Development kit (YDK) packages installed.  For YDK installation please refer to
 
@@ -76,7 +76,7 @@ Note that the example will only work with Cisco IOS-XR devices running 6.x or la
 
 For telemetry page to work properly, you must have a working telemetry collection stack with a Kafka topic.
 
-![telemetry](./telemetry_stack2.png)
+![telemetry](./telemetry_stack3.png)
 
 Custimization of the code within the telemetry_code.py file will be
 required to properly process your telemetry messages.
